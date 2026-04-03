@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ES10 ライン 生産管理システム</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:    #0d0f1a;
+      --bg-panel:   #121526;
+      --bg-deep:    #0a0c14;
+      --border:     #1e2a4a;
+      --border-hi:  #2e3f6a;
+      --green:      #00e676;
+      --green-dim:  #004d28;
+      --cyan:       #00d4ff;
+      --cyan-dim:   #003a4d;
+      --amber:      #ffab00;
+      --amber-dim:  #3d2800;
+      --blue:       #4488ff;
+      --blue-dim:   #0a1f4d;
+      --red:        #ff4444;
+      --text-pri:   #e8eaf0;
+      --text-sec:   #7a8aaa;
+      --text-muted: #4a5570;
+      --mono:       'Share Tech Mono', monospace;
+      --sans:       'Noto Sans JP', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-pri);
+      font-family: var(--sans);
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--cyan);
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin: 10px 10px 0;
+    }
+    .header-left { display: flex; align-items: baseline; gap: 16px; }
+    .header-title {
+      font-family: var(--mono);
+      font-size: 20px;
+      color: var(--cyan);
+      letter-spacing: 3px;
+      text-shadow: 0 0 12px rgba(0,212,255,0.4);
+    }
+    .header-sub { font-size: 11px; color: var(--text-sec); letter-spacing: 1px; }
+    .clock { text-align: right; }
+    .clock-time {
+      font-family: var(--mono);
+      font-size: 28px;
+      color: var(--green);
+      letter-spacing: 3px;
+      text-shadow: 0 0 12px rgba(0,230,118,0.4);
+      line-height: 1;
+    }
+    .clock-date { font-family: var(--mono); font-size: 12px; color: var(--text-sec); margin-top: 2px; }
+
+    /* ─── Tabs ─── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      padding: 8px 10px 0;
+    }
+    .tab-btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+      padding: 7px 22px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .tab-btn:hover { background: var(--bg-panel); color: var(--text-pri); }
+    .tab-btn.active {
+      background: var(--bg-panel);
+      color: var(--cyan);
+      border-color: var(--border-hi);
+      border-bottom: 1px solid var(--bg-panel);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .page-wrap {
+      padding: 0 10px 10px;
+      background: var(--bg-panel);
+      margin: 0 10px 10px;
+      border: 1px solid var(--border-hi);
+      border-top: none;
+      border-radius: 0 4px 4px 4px;
+    }
+
+    /* ─── Status bar ─── */
+    .status-bar {
+      display: flex;
+      gap: 20px;
+      padding: 8px 0 6px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-sec);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+    .dot-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .dot-gray  { background: var(--text-muted); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ─── Metrics ─── */
+    .metrics-row { display: grid; grid-template-columns: 240px 1fr; gap: 8px; margin-bottom: 8px; }
+    .counter-box {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 4px;
+      padding: 12px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .counter-box::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,230,118,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .counter-label { font-family: var(--mono); font-size: 11px; color: var(--text-sec); letter-spacing: 2px; margin-bottom: 4px; }
+    .counter-value {
+      font-family: var(--mono); font-size: 80px; font-weight: 700;
+      color: var(--green); line-height: 1;
+      text-shadow: 0 0 20px rgba(0,230,118,0.5);
+      transition: color 0.15s;
+    }
+    .counter-value.flash { color: #fff; text-shadow: 0 0 30px #fff; }
+    .counter-unit { font-size: 11px; color: var(--text-muted); margin-top: 4px; letter-spacing: 1px; }
+
+    .prog-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .prog-card { background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; padding: 12px; text-align: center; }
+    .prog-label { font-family: var(--mono); font-size: 10px; color: var(--text-sec); letter-spacing: 2px; margin-bottom: 6px; }
+    .prog-value { font-family: var(--mono); font-size: 32px; font-weight: 700; line-height: 1.1; }
+    .prog-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .prog-bar-wrap { background: var(--bg-deep); border: 1px solid var(--border); border-radius: 2px; height: 6px; margin-top: 8px; overflow: hidden; }
+    .prog-bar { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+    /* ─── Main body ─── */
+    .main-body { display: grid; grid-template-columns: 1fr 270px; gap: 8px; }
+    .table-wrap { background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .table-title { font-family: var(--mono); font-size: 10px; color: var(--text-sec); letter-spacing: 2px; padding: 6px 10px; background: var(--bg-deep); border-bottom: 1px solid var(--border); }
+    .tbl-head {
+      display: grid;
+      grid-template-columns: 52px 58px 44px 130px 52px 52px 52px 64px;
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border-hi);
+      padding: 5px 10px; gap: 4px;
+    }
+    .tbl-head-cell { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-align: right; }
+    .tbl-head-cell:first-child, .tbl-head-cell:nth-child(4), .tbl-head-cell:last-child { text-align: left; }
+    .tbl-row {
+      display: grid;
+      grid-template-columns: 52px 58px 44px 130px 52px 52px 52px 64px;
+      padding: 6px 10px; gap: 4px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .tbl-row:hover { background: rgba(255,255,255,0.03); }
+    .tbl-row.row-active  { background: rgba(0,230,118,0.06); border-left: 3px solid var(--green); }
+    .tbl-row.row-warn    { background: rgba(255,171,0,0.06);  border-left: 3px solid var(--amber); }
+    .tbl-row.row-done    { opacity: 0.5; }
+    .cell { font-family: var(--mono); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+    .cell-left { text-align: left; }
+    .badge { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 2px; letter-spacing: 1px; }
+    .badge-run  { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+    .badge-wait { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+    .badge-done { background: var(--blue-dim);  color: var(--blue);  border: 1px solid var(--blue); }
+
+    .side-panel { display: flex; flex-direction: column; gap: 8px; }
+    .info-card { background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
+    .card-title { font-family: var(--mono); font-size: 10px; color: var(--text-sec); letter-spacing: 2px; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 8px; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+    .info-key { font-family: var(--mono); font-size: 11px; color: var(--text-sec); }
+    .info-val { font-family: var(--mono); font-size: 12px; color: var(--text-pri); }
+    .val-green { color: var(--green); }
+    .val-cyan  { color: var(--cyan); }
+    .val-amber { color: var(--amber); }
+
+    .bar-wrap { background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 70px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+    .bar-fill { width: 100%; border-radius: 2px 2px 0 0; }
+    .bar-lbl { font-family: var(--mono); font-size: 8px; color: var(--text-muted); }
+    .gauge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .gauge-item { text-align: center; }
+    .gauge-num { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+    .gauge-lbl { font-family: var(--mono); font-size: 9px; color: var(--text-sec); letter-spacing: 1px; margin-top: 2px; }
+
+    /* ════ ANDON ════ */
+    .andon-wrap {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .andon-grid-box {
+      background: #000;
+      border: 2px solid #333;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    .andon-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .andon-cell {
+      aspect-ratio: 1.3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: filter 0.2s;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .andon-cell:hover { filter: brightness(1.3); }
+    .ac-green  { background: #1a6b1a; color: #7fff7f; }
+    .ac-blue   { background: #1a3d8f; color: #88bbff; }
+    .ac-orange { background: #7a3500; color: #ffaa55; }
+    .ac-black  { background: #111; color: #444; border-color: #333 !important; }
+    .ac-empty  { background: transparent; border-color: transparent !important; }
+
+    .andon-legend {
+      display: flex; gap: 14px;
+      margin-top: 8px; padding-top: 6px;
+      border-top: 1px solid #2a2a2a;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; color: #666; }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    .andon-status { display: flex; flex-direction: column; gap: 7px; }
+
+    .andon-header-card {
+      background: #000;
+      border: 2px solid #333;
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .andon-line-name { font-family: var(--mono); font-size: 26px; color: #fff; letter-spacing: 4px; }
+    .andon-takt-label { font-family: var(--mono); font-size: 10px; color: #666; letter-spacing: 1px; }
+    .andon-takt-val   { font-family: var(--mono); font-size: 22px; color: var(--green); text-align: right; }
+
+    .andon-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .am-card {
+      background: #000;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .am-label { font-family: var(--mono); font-size: 10px; color: #666; letter-spacing: 1px; margin-bottom: 3px; }
+    .am-val   { font-family: var(--mono); font-size: 26px; font-weight: 700; line-height: 1; }
+    .am-unit  { font-family: var(--mono); font-size: 10px; color: #555; margin-top: 2px; }
+
+    .andon-env {
+      background: #000;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-around;
+    }
+    .env-item { text-align: center; }
+    .env-val  { font-family: var(--mono); font-size: 16px; color: #aaa; }
+    .env-lbl  { font-family: var(--mono); font-size: 9px; color: #555; letter-spacing: 1px; margin-top: 2px; }
+
+    .andon-process {
+      background: #0a0a0a;
+      border: 2px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 10px 14px;
+    }
+    .ap-label { font-family: var(--mono); font-size: 10px; color: #555; margin-bottom: 4px; letter-spacing: 1px; }
+    .ap-val   { font-family: var(--mono); font-size: 18px; color: #fff; letter-spacing: 2px; }
+
+    /* ─── Holiday mode ─── */
+    .holiday-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--text-muted);
+      border-radius: 4px;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .holiday-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .holiday-btn.holiday-on {
+      background: rgba(255,171,0,0.12);
+      border-color: var(--amber);
+      color: var(--amber);
+      box-shadow: 0 0 8px rgba(255,171,0,0.3);
+    }
+    .holiday-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(255,171,0,0.08);
+      border: 1px solid var(--amber);
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--amber);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    .holiday-banner.show { display: flex; }
+    .holiday-banner-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      animation: pulse 1.5s infinite;
+    }
+
+    @media (max-width: 960px) {
+      .andon-wrap  { grid-template-columns: 1fr; }
+      .main-body   { grid-template-columns: 1fr; }
+      .metrics-row { grid-template-columns: 1fr; }
+      .counter-value { font-size: 56px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ─── -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">ES10 ライン　生産管理システム</span>
+      <span class="header-sub">伝票発行パソコン　／　コンプレッサ組立ライン</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <button class="holiday-btn" id="holidayBtn" onclick="toggleHoliday()">休日モード　OFF</button>
+      <div class="clock">
+        <div class="clock-time" id="clk">--:--:--</div>
+        <div class="clock-date" id="clkdate">----年--月--日</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Tab bar ─── -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)">■ 生産管理</button>
+    <button class="tab-btn"        onclick="switchTab('andon',this)">■ アンドン</button>
+  </div>
+
+  <!-- ════ TAB: 生産管理 ════ -->
+  <div class="tab-content active page-wrap" id="tab-dashboard">
+
+    <div class="holiday-banner" id="holidayBanner">
+      <div class="holiday-banner-dot"></div>
+      休　日　－　生産停止中
+      <div class="holiday-banner-dot"></div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-item"><div class="dot dot-green"></div>ライン稼働中</div>
+      <div class="status-item"><div class="dot dot-amber"></div>段取り待ち 1件</div>
+      <div class="status-item"><div class="dot dot-gray"></div>停止 0件</div>
+      <div class="status-item" style="margin-left:auto;color:var(--text-muted);">自動更新：2秒</div>
+    </div>
+
+    <div class="metrics-row">
+      <div class="counter-box">
+        <div class="counter-label">直生産実績</div>
+        <div class="counter-value" id="counterVal">680</div>
+        <div class="counter-unit">台　（本日累計）</div>
+      </div>
+      <div class="prog-grid">
+        <div class="prog-card">
+          <div class="prog-label">出来高</div>
+          <div class="prog-value val-green" id="pDekidaka">680</div>
+          <div class="prog-sub">計画: 1,000台</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="barDek" style="background:var(--green);width:68%"></div></div>
+        </div>
+        <div class="prog-card">
+          <div class="prog-label">出荷数</div>
+          <div class="prog-value val-cyan" id="pShukka">432</div>
+          <div class="prog-sub">本日出荷済</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="barShk" style="background:var(--cyan);width:43%"></div></div>
+        </div>
+        <div class="prog-card">
+          <div class="prog-label">残　数</div>
+          <div class="prog-value val-amber" id="pNokori">320</div>
+          <div class="prog-sub">未出荷</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="barNok" style="background:var(--amber);width:32%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-body">
+      <div class="table-wrap">
+        <div class="table-title">■ 生産指示リスト</div>
+        <div class="tbl-head">
+          <div class="tbl-head-cell" style="text-align:left">生産日</div>
+          <div class="tbl-head-cell" style="text-align:left">順序No</div>
+          <div class="tbl-head-cell">台数</div>
+          <div class="tbl-head-cell" style="text-align:left">DC品番</div>
+          <div class="tbl-head-cell">出来高</div>
+          <div class="tbl-head-cell">出荷</div>
+          <div class="tbl-head-cell">残数</div>
+          <div class="tbl-head-cell" style="text-align:left">状態</div>
+        </div>
+        <div id="tableBody"></div>
+      </div>
+      <div class="side-panel">
+        <div class="info-card">
+          <div class="card-title">■ 現在処理中</div>
+          <div class="info-row"><span class="info-key">DC品番</span><span class="info-val val-cyan">042400-3560</span></div>
+          <div class="info-row"><span class="info-key">品名</span><span class="info-val">ESB27C</span></div>
+          <div class="info-row"><span class="info-key">計画数</span><span class="info-val">1,000</span></div>
+          <div class="info-row"><span class="info-key">出来高</span><span class="info-val val-green" id="sideDek">680</span></div>
+          <div class="info-row"><span class="info-key">出荷数</span><span class="info-val val-cyan">432</span></div>
+          <div class="info-row"><span class="info-key">残数</span><span class="info-val val-amber" id="sideNok">320</span></div>
+          <div class="info-row"><span class="info-key">開始時刻</span><span class="info-val">10:32:30</span></div>
+          <div class="info-row"><span class="info-key">終了予定</span><span class="info-val val-amber">14:32:00</span></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="card-title">■ 時間別出来高（台）</div>
+          <div class="bar-chart" id="hourBar"></div>
+        </div>
+        <div class="info-card">
+          <div class="card-title">■ ライン設定</div>
+          <div class="gauge-row" style="margin-bottom:8px;">
+            <div class="gauge-item"><div class="gauge-num val-green">94.2</div><div class="gauge-lbl">稼 働 率 %</div></div>
+            <div class="gauge-item"><div class="gauge-num val-amber">3</div><div class="gauge-lbl">不 良 数</div></div>
+          </div>
+          <div class="info-row"><span class="info-key">タクトタイム</span><span class="info-val val-green">21.6秒</span></div>
+          <div class="info-row"><span class="info-key">作業者数</span><span class="info-val">6名</span></div>
+          <div class="info-row"><span class="info-key">累計不良率</span><span class="info-val val-amber">0.44%</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-dashboard -->
+
+  <!-- ════ TAB: アンドン ════ -->
+  <div class="tab-content page-wrap" id="tab-andon">
+    <div class="andon-wrap">
+
+      <!-- 左: 番号グリッド -->
+      <div class="andon-grid-box">
+        <div class="andon-grid" id="andonGrid"></div>
+        <div class="andon-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#1a6b1a"></div>正常稼働</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#1a3d8f"></div>現在工程</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7a3500"></div>遅れ・注意</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#111;border:1px solid #444"></div>未着手</div>
+        </div>
+      </div>
+
+      <!-- 右: ステータスパネル -->
+      <div class="andon-status">
+
+        <div class="andon-header-card">
+          <div class="andon-line-name" id="anLineName">ES10</div>
+          <div>
+            <div class="andon-takt-label">実行タクト</div>
+            <div class="andon-takt-val" id="anTakt">10.0S</div>
+          </div>
+        </div>
+
+        <div class="andon-2col">
+          <div class="am-card">
+            <div class="am-label">計　画</div>
+            <div class="am-val" style="color:#fff" id="anPlan">2945</div>
+            <div class="am-unit">台</div>
+          </div>
+          <div class="am-card">
+            <div class="am-label">現　在</div>
+            <div class="am-val" style="color:var(--green)" id="anCurrent">1304</div>
+            <div class="am-unit">台</div>
+          </div>
+        </div>
+
+        <div class="andon-2col">
+          <div class="am-card">
+            <div class="am-label">実績（前）</div>
+            <div class="am-val" style="color:var(--cyan)" id="anBefore">1337</div>
+            <div class="am-unit">台</div>
+          </div>
+          <div class="am-card">
+            <div class="am-label">実績（後）</div>
+            <div class="am-val" style="color:var(--cyan)" id="anAfter">1282</div>
+            <div class="am-unit">台</div>
+          </div>
+        </div>
+
+        <div class="andon-2col">
+          <div class="am-card">
+            <div class="am-label">残　業</div>
+            <div class="am-val" style="color:#fff" id="anZangyo">0.00</div>
+            <div class="am-unit">h</div>
+          </div>
+          <div class="am-card">
+            <div class="am-label">停　止</div>
+            <div class="am-val" style="color:var(--amber)" id="anTeishi">3</div>
+            <div class="am-unit">分</div>
+          </div>
+        </div>
+
+        <div class="andon-env">
+          <div class="env-item">
+            <div class="env-val" id="anTemp">26°C</div>
+            <div class="env-lbl">温度</div>
+          </div>
+          <div class="env-item">
+            <div class="env-val" id="anHum">25%</div>
+            <div class="env-lbl">湿度</div>
+          </div>
+          <div class="env-item">
+            <div class="env-val" id="anPres">0.3Pa</div>
+            <div class="env-lbl">気圧差</div>
+          </div>
+        </div>
+
+        <div class="andon-process">
+          <div class="ap-label">現在工程</div>
+          <div class="ap-val" id="anProcess">105　Oリング</div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /tab-andon -->
+
+<script>
+  /* ══════════════════════════════════════════
+     CONFIG — ここを編集してカスタマイズできます
+  ══════════════════════════════════════════ */
+  const CONFIG = {
+
+    /* ── 生産管理タブ ── */
+    dashboard: {
+      plan:       1000,   // 本日計画台数
+      initCount:  680,    // 初期出来高
+      initShukka: 432,    // 初期出荷数
+    },
+
+    /* ── アンドンタブ ── */
+    andon: {
+      lineName:  'ES10',      // ライン名
+      taktTime:  '10.0S',     // 実行タクト
+      plan:      2945,        // 計画台数
+      current:   1304,        // 現在台数
+      before:    1337,        // 実績（前）
+      after:     1282,        // 実績（後）
+      zangyo:    '0.00',      // 残業時間
+      teishi:    3,           // 停止時間（分）
+      temp:      '26°C',      // 温度
+      humidity:  '25%',       // 湿度
+      pressure:  '0.3Pa',     // 気圧差
+      process:   '105　Oリング', // 現在工程名
+    },
+
+    /* ── アンドン番号グリッド ──
+       color: 'green'  = 正常稼働（緑）
+              'blue'   = 現在工程（青）
+              'orange' = 遅れ・注意（オレンジ）
+              'black'  = 未着手（黒）
+              'empty'  = 空白セル
+    */
+    andonCells: [
+      {num:'32',  color:'green'}, {num:'',    color:'empty'}, {num:'12',  color:'green'},
+      {num:'15',  color:'green'}, {num:'20',  color:'green'}, {num:'30',  color:'green'}, {num:'31',  color:'green'},
+      {num:'35',  color:'green'}, {num:'36',  color:'green'}, {num:'40',  color:'green'}, {num:'50',  color:'green'},
+      {num:'60',  color:'green'}, {num:'70',  color:'green'}, {num:'',    color:'empty'},
+      {num:'75',  color:'blue'},  {num:'80',  color:'blue'},  {num:'90',  color:'blue'},  {num:'',    color:'empty'},
+      {num:'95',  color:'green'}, {num:'100', color:'green'}, {num:'105', color:'blue'},
+      {num:'110', color:'green'}, {num:'120', color:'green'}, {num:'130', color:'green'}, {num:'140', color:'green'},
+      {num:'142', color:'orange'},{num:'143', color:'orange'},{num:'150', color:'green'},
+      {num:'151', color:'green'}, {num:'155', color:'green'}, {num:'160', color:'green'}, {num:'165', color:'green'},
+      {num:'170', color:'blue'},  {num:'180', color:'blue'},  {num:'181', color:'green'},
+      {num:'200', color:'green'}, {num:'202', color:'green'}, {num:'210', color:'green'}, {num:'212', color:'green'},
+      {num:'220', color:'green'}, {num:'',    color:'empty'}, {num:'',    color:'empty'},
+      {num:'C7',  color:'green'}, {num:'C99', color:'green'}, {num:'D9',  color:'black'}, {num:'C2',  color:'green'},
+      {num:'C3',  color:'green'}, {num:'C4',  color:'blue'},  {num:'C5',  color:'blue'},
+      {num:'',    color:'empty'}, {num:'',    color:'empty'}, {num:'',    color:'empty'}, {num:'AG',  color:'green'},
+      {num:'',    color:'empty'}, {num:'',    color:'empty'}, {num:'KC',  color:'green'},
+    ],
+  };
+  /* ══════════════════════════════════════════
+     END CONFIG
+  ══════════════════════════════════════════ */
+
+  /* ── Holiday mode ── */
+  let isHoliday = false;
+
+  function toggleHoliday() {
+    isHoliday = !isHoliday;
+    const btn    = document.getElementById('holidayBtn');
+    const banner = document.getElementById('holidayBanner');
+
+    if (isHoliday) {
+      btn.textContent = '休日モード　ON';
+      btn.classList.add('holiday-on');
+      banner.classList.add('show');
+
+      /* 全数値を0にリセット */
+      count   = 0;
+      anCount = 0;
+      clearInterval(tickTimer);
+
+      document.getElementById('counterVal').textContent  = '0';
+      document.getElementById('pDekidaka').textContent   = '0';
+      document.getElementById('pShukka').textContent     = '0';
+      document.getElementById('pNokori').textContent     = '0';
+      document.getElementById('sideDek').textContent     = '0';
+      document.getElementById('sideNok').textContent     = '0';
+      document.getElementById('barDek').style.width      = '0%';
+      document.getElementById('barShk').style.width      = '0%';
+      document.getElementById('barNok').style.width      = '0%';
+
+      document.getElementById('anPlan').textContent      = '0';
+      document.getElementById('anCurrent').textContent   = '0';
+      document.getElementById('anBefore').textContent    = '0';
+      document.getElementById('anAfter').textContent     = '0';
+      document.getElementById('anZangyo').textContent    = '0.00';
+      document.getElementById('anTeishi').textContent    = '0';
+      document.getElementById('anProcess').textContent   = '－　休日';
+
+      /* グリッドを全て黒に */
+      document.querySelectorAll('.andon-cell').forEach(el => {
+        if (!el.classList.contains('ac-empty')) {
+          el.className = 'andon-cell ac-black';
+        }
+      });
+
+    } else {
+      btn.textContent = '休日モード　OFF';
+      btn.classList.remove('holiday-on');
+      banner.classList.remove('show');
+
+      /* 元の値に戻す */
+      count   = CONFIG.dashboard.initCount;
+      anCount = CONFIG.andon.current;
+      tickTimer = setInterval(tick, 2000);
+
+      document.getElementById('counterVal').textContent  = count;
+      document.getElementById('pDekidaka').textContent   = count;
+      document.getElementById('pShukka').textContent     = CONFIG.dashboard.initShukka;
+      const rem = Math.max(0, CONFIG.dashboard.plan - count);
+      document.getElementById('pNokori').textContent     = rem;
+      document.getElementById('sideDek').textContent     = count;
+      document.getElementById('sideNok').textContent     = rem;
+      document.getElementById('barDek').style.width      = Math.round(count/CONFIG.dashboard.plan*100)+'%';
+      document.getElementById('barShk').style.width      = Math.round(CONFIG.dashboard.initShukka/CONFIG.dashboard.plan*100)+'%';
+      document.getElementById('barNok').style.width      = Math.round(rem/CONFIG.dashboard.plan*100)+'%';
+
+      /* アンドンを再構築 */
+      buildAndon();
+    }
+  }
+
+  /* ── Clock ── */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clk').textContent =
+      now.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const d = now.toLocaleDateString('ja-JP', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const p = d.split('/');
+    document.getElementById('clkdate').textContent =
+      p.length === 3 ? `${p[0]}年${p[1]}月${p[2]}日` : d;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  /* ── Tab ── */
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  /* ── Production table ── */
+  const rows = [
+    { date:'04/03', seq:'041-00', qty:20, part:'042400-1551', done:20, ship:20, rem:0,  st:'done' },
+    { date:'04/03', seq:'042-00', qty:20, part:'042400-0050', done:20, ship:18, rem:2,  st:'done' },
+    { date:'04/03', seq:'043-00', qty:20, part:'042400-0731', done:20, ship:20, rem:0,  st:'done' },
+    { date:'04/03', seq:'044-00', qty:20, part:'042400-0741', done:20, ship:16, rem:4,  st:'done' },
+    { date:'04/03', seq:'045-00', qty:20, part:'042400-3560', done:14, ship:8,  rem:6,  st:'run'  },
+    { date:'04/03', seq:'046-00', qty:20, part:'042400-1551', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'047-00', qty:20, part:'042400-0741', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'048-00', qty:20, part:'042400-0371', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'049-00', qty:20, part:'042400-0050', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'050-00', qty:20, part:'042400-3590', done:0,  ship:0,  rem:20, st:'wait' },
+  ];
+  const badgeMap = {
+    run:  '<span class="badge badge-run">稼働中</span>',
+    wait: '<span class="badge badge-wait">待　機</span>',
+    done: '<span class="badge badge-done">完　了</span>',
+  };
+  function buildTable() {
+    document.getElementById('tableBody').innerHTML = rows.map(r => {
+      const cls = r.st==='run' ? 'row-active' : r.st==='done' ? 'row-done' : r.seq==='046-00' ? 'row-warn' : '';
+      return `<div class="tbl-row ${cls}">
+        <div class="cell cell-left">${r.date}</div>
+        <div class="cell cell-left">${r.seq}</div>
+        <div class="cell">${r.qty}</div>
+        <div class="cell cell-left" style="color:var(--cyan)">${r.part}</div>
+        <div class="cell" style="color:${r.done===r.qty?'var(--green)':'var(--text-pri)'}">${r.done}</div>
+        <div class="cell" style="color:var(--cyan)">${r.ship}</div>
+        <div class="cell" style="color:${r.rem>0?'var(--amber)':'var(--text-muted)'}">${r.rem}</div>
+        <div class="cell cell-left">${badgeMap[r.st]}</div>
+      </div>`;
+    }).join('');
+  }
+  buildTable();
+
+  /* ── Hourly bar ── */
+  const hourData = [58,62,71,68,65,70,72,69,74,71,68,75,63,72];
+  (function buildHourBar() {
+    const max = Math.max(...hourData);
+    document.getElementById('hourBar').innerHTML = hourData.map((v,i) => {
+      const h = Math.round(v/max*60);
+      const col = i===hourData.length-1 ? 'var(--amber)' : 'var(--cyan)';
+      return `<div class="bar-col"><div class="bar-fill" style="height:${h}px;background:${col};opacity:0.8"></div><div class="bar-lbl">${6+i}</div></div>`;
+    }).join('');
+  })();
+
+  /* ── Counter sim ── */
+  let count = CONFIG.dashboard.initCount;
+  const PLAN = CONFIG.dashboard.plan;
+  let anCount = CONFIG.andon.current;
+
+  function tick() {
+    if (Math.random() < 0.15) {
+      count++;
+      anCount++;
+      const rem = Math.max(0, PLAN - count);
+      const cv = document.getElementById('counterVal');
+      cv.textContent = count;
+      cv.classList.add('flash');
+      setTimeout(() => cv.classList.remove('flash'), 150);
+      document.getElementById('pDekidaka').textContent = count;
+      document.getElementById('sideDek').textContent   = count;
+      document.getElementById('pNokori').textContent   = rem;
+      document.getElementById('sideNok').textContent   = rem;
+      document.getElementById('barDek').style.width = Math.min(100,Math.round(count/PLAN*100))+'%';
+      document.getElementById('barNok').style.width = Math.min(100,Math.round(rem/PLAN*100))+'%';
+      document.getElementById('anCurrent').textContent = anCount.toLocaleString();
+    }
+  }
+  let tickTimer = null;
+  tickTimer = setInterval(tick, 2000);
+
+  /* ── Andon build ── */
+  const colorClass = { green:'ac-green', blue:'ac-blue', orange:'ac-orange', black:'ac-black', empty:'ac-empty' };
+  function buildAndon() {
+    const a = CONFIG.andon;
+    document.getElementById('anLineName').textContent  = a.lineName;
+    document.getElementById('anTakt').textContent      = a.taktTime;
+    document.getElementById('anPlan').textContent      = a.plan.toLocaleString();
+    document.getElementById('anCurrent').textContent   = a.current.toLocaleString();
+    document.getElementById('anBefore').textContent    = a.before.toLocaleString();
+    document.getElementById('anAfter').textContent     = a.after.toLocaleString();
+    document.getElementById('anZangyo').textContent    = a.zangyo;
+    document.getElementById('anTeishi').textContent    = a.teishi;
+    document.getElementById('anTemp').textContent      = a.temp;
+    document.getElementById('anHum').textContent       = a.humidity;
+    document.getElementById('anPres').textContent      = a.pressure;
+    document.getElementById('anProcess').textContent   = a.process;
+
+    document.getElementById('andonGrid').innerHTML = CONFIG.andonCells.map(c =>
+      `<div class="andon-cell ${colorClass[c.color]||'ac-empty'}">${c.num}</div>`
+    ).join('');
+  }
+  buildAndon();
+</script>
+</body>
+</html>
