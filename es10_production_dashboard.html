@@ -634,6 +634,61 @@
       color: var(--text-pri);
     }
     .model-plan-item span { color: var(--cyan); margin-left: 4px; }
+
+    /* ─── 設定FABボタン ─── */
+    .cfg-fab {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 48px; height: 48px;
+      background: var(--cyan); border: none; border-radius: 50%;
+      cursor: pointer; font-size: 20px; color: #000;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+      transition: transform .2s, box-shadow .2s; z-index: 500;
+    }
+    .cfg-fab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(0,212,255,0.6); }
+
+    /* ─── 設定パネル ─── */
+    .cfg-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:1000; align-items:flex-start; justify-content:flex-end; }
+    .cfg-overlay.open { display:flex; }
+    .cfg-panel { background:#081428; border-left:1px solid var(--border); width:min(500px,100vw); height:100vh; overflow-y:auto; display:flex; flex-direction:column; }
+    .cfg-hdr { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--border); background:#050d1a; position:sticky; top:0; z-index:10; }
+    .cfg-hdr-title { font-family:var(--mono); font-size:13px; color:var(--cyan); letter-spacing:2px; }
+    .cfg-close { background:transparent; border:1px solid var(--border); color:var(--text-muted); font-size:16px; width:30px; height:30px; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+    .cfg-close:hover { border-color:var(--red); color:var(--red); }
+    .cfg-body { padding:16px 18px; flex:1; }
+    .cfg-sec { margin-bottom:22px; }
+    .cfg-sec-title { font-family:var(--mono); font-size:10px; color:var(--cyan); letter-spacing:2px; border-left:2px solid var(--cyan); padding-left:8px; margin-bottom:12px; opacity:.8; }
+    .cfg-row { display:flex; flex-direction:column; gap:3px; margin-bottom:10px; }
+    .cfg-label { font-family:var(--mono); font-size:10px; color:var(--text-muted); letter-spacing:1px; }
+    .cfg-input { background:#0a1a30; border:1px solid var(--border); border-radius:4px; padding:6px 10px; color:var(--text-pri); font-family:var(--sans); font-size:13px; width:100%; transition:border-color .2s; }
+    .cfg-input:focus { outline:none; border-color:var(--cyan); }
+    .cfg-input[type=color] { padding:2px 4px; height:34px; cursor:pointer; }
+    .cfg-2col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .cfg-textarea { background:#0a1a30; border:1px solid var(--border); border-radius:4px; padding:6px 10px; color:var(--text-pri); font-family:var(--mono); font-size:11px; width:100%; height:80px; resize:vertical; }
+    .cfg-textarea:focus { outline:none; border-color:var(--cyan); }
+
+    /* スケジュール編集テーブル */
+    .sch-table-wrap { overflow-x:auto; max-height:300px; overflow-y:auto; }
+    .sch-table { border-collapse:collapse; font-size:11px; }
+    .sch-table th { background:#0d2040; color:var(--cyan); font-family:var(--mono); font-size:9px; padding:4px 6px; border:1px solid var(--border); white-space:nowrap; position:sticky; top:0; }
+    .sch-table td { border:1px solid var(--border); padding:2px; }
+    .sch-input { background:transparent; border:none; color:var(--text-pri); width:100%; padding:2px 4px; font-family:var(--mono); font-size:10px; text-align:right; }
+    .sch-input:focus { outline:1px solid var(--cyan); background:#0a1a30; }
+    .sch-name { font-size:10px; color:var(--text-sec); padding:3px 6px; white-space:nowrap; }
+
+    /* アンドンセル設定 */
+    .cell-cfg-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:3px; margin-bottom:8px; }
+    .cell-cfg-item { display:flex; flex-direction:column; align-items:center; gap:2px; }
+    .cell-cfg-num { font-family:var(--mono); font-size:9px; color:var(--text-muted); }
+    .cell-cfg-sel { width:100%; font-size:8px; background:#0a1a30; border:1px solid var(--border); color:var(--text-pri); border-radius:2px; padding:1px; }
+
+    /* フッターボタン */
+    .cfg-footer { display:flex; gap:8px; padding:14px 18px; border-top:1px solid var(--border); background:#050d1a; position:sticky; bottom:0; }
+    .cfg-btn { font-family:var(--mono); font-size:10px; letter-spacing:1px; padding:7px 16px; border-radius:4px; cursor:pointer; border:1px solid; transition:all .2s; }
+    .cfg-apply { border-color:var(--green); color:var(--green); background:rgba(0,230,118,.1); }
+    .cfg-apply:hover { background:rgba(0,230,118,.25); }
+    .cfg-dl { border-color:var(--blue); color:var(--blue); background:rgba(68,136,255,.1); }
+    .cfg-dl:hover { background:rgba(68,136,255,.25); }
   </style>
 </head>
 <body>
@@ -1643,11 +1698,228 @@
     /* 生産進捗はアンドン右パネルの数値のみ反映（セル色はcellStatesで管理） */
   }
 
+  /* ════ 設定パネル ════ */
+  function openCfg() {
+    loadCfgForm();
+    document.getElementById('cfgOverlay').classList.add('open');
+  }
+  function closeCfg() { document.getElementById('cfgOverlay').classList.remove('open'); }
+  function cfgOverlayClick(e) { if (e.target === document.getElementById('cfgOverlay')) closeCfg(); }
+
+  function loadCfgForm() {
+    /* 基本情報 */
+    document.getElementById('cfgLineTitle').value = document.querySelector('.header-title')?.textContent || 'ES10 ライン　生産管理システム';
+    document.getElementById('cfgLineSub').value   = document.querySelector('.header-sub')?.textContent   || '伝票発行パソコン　／　コンプレッサ組立ライン';
+    document.getElementById('cfgTakt').value      = CONFIG.andon.taktTime;
+    document.getElementById('cfgWorkers').value   = '6名';
+
+    /* カラー */
+    const s = getComputedStyle(document.documentElement);
+    const toHex = v => { v=v.trim(); if(v.startsWith('#')) return v; return '#0d0f1a'; };
+    document.getElementById('cfgBg').value    = toHex(s.getPropertyValue('--bg-base').trim())    || '#0d0f1a';
+    document.getElementById('cfgPanel').value = toHex(s.getPropertyValue('--bg-panel').trim())   || '#121526';
+    document.getElementById('cfgCyan').value  = toHex(s.getPropertyValue('--cyan').trim())       || '#00d4ff';
+    document.getElementById('cfgGreen').value = toHex(s.getPropertyValue('--green').trim())      || '#00e676';
+    document.getElementById('cfgAmber').value = toHex(s.getPropertyValue('--amber').trim())      || '#ffab00';
+    document.getElementById('cfgRed').value   = toHex(s.getPropertyValue('--red').trim())        || '#ff4444';
+
+    /* 生産指示リスト */
+    buildRowsEditor();
+
+    /* 生産日程表 */
+    document.getElementById('cfgDays').value = CONFIG.schedule.days.join(',');
+    buildScheduleEditor();
+
+    /* アンドン */
+    document.getElementById('cfgAndonLine').value = CONFIG.andon.lineName;
+    document.getElementById('cfgAndonPlan').value = CONFIG.andon.plan || 2945;
+    buildCellCfgGrid();
+  }
+
+  /* 生産指示行エディタ */
+  function buildRowsEditor() {
+    document.getElementById('rowsEditor').innerHTML = rows.map((r,i) => `
+      <div style="display:grid;grid-template-columns:50px 60px 1fr 60px 50px;gap:4px;margin-bottom:4px;align-items:center;">
+        <input class="cfg-input" value="${r.seq}"  onchange="rows[${i}].seq=this.value"  placeholder="順序No" style="font-size:10px;padding:4px 6px;">
+        <input class="cfg-input" value="${r.qty}"  onchange="rows[${i}].qty=parseInt(this.value)||20" type="number" placeholder="台数" style="font-size:10px;padding:4px 6px;">
+        <input class="cfg-input" value="${r.part}" onchange="rows[${i}].part=this.value" placeholder="DC品番" style="font-size:10px;padding:4px 6px;">
+        <select class="cfg-input" onchange="rows[${i}].st=this.value" style="font-size:10px;padding:3px;">
+          <option value="done" ${r.st==='done'?'selected':''}>完了</option>
+          <option value="run"  ${r.st==='run' ?'selected':''}>稼働中</option>
+          <option value="wait" ${r.st==='wait'?'selected':''}>待機</option>
+        </select>
+        <button class="cfg-btn" style="border-color:var(--red);color:var(--red);padding:3px 6px;font-size:9px;" onclick="removeRow(${i})">削除</button>
+      </div>`).join('');
+  }
+  function addRow() {
+    rows.push({date:'04/03',seq:'051-00',qty:20,part:'042400-0000',done:0,ship:0,rem:20,st:'wait'});
+    buildRowsEditor();
+  }
+  function removeRow(i) { rows.splice(i,1); buildRowsEditor(); }
+
+  /* スケジュールエディタ */
+  function buildScheduleEditor() {
+    const days = document.getElementById('cfgDays').value.split(',').map(d=>d.trim()).filter(Boolean);
+    const el = document.getElementById('scheduleEditor');
+    el.innerHTML = `<div class="sch-table-wrap"><table class="sch-table">
+      <thead><tr><th>機種名</th>${days.map(d=>`<th>${d}日</th>`).join('')}<th></th></tr></thead>
+      <tbody>${CONFIG.schedule.models.map((m,mi)=>`
+        <tr>
+          <td><input class="sch-input" style="width:160px;text-align:left;" value="${m.name}" onchange="CONFIG.schedule.models[${mi}].name=this.value"></td>
+          ${days.map((d,di)=>`<td><input class="sch-input" type="number" value="${m.daily[di]||0}" onchange="CONFIG.schedule.models[${mi}].daily[${di}]=parseInt(this.value)||0"></td>`).join('')}
+          <td><button style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:11px;" onclick="removeModel(${mi})">✕</button></td>
+        </tr>`).join('')}
+      </tbody></table></div>`;
+  }
+  function addModel() {
+    const days = document.getElementById('cfgDays').value.split(',').filter(Boolean);
+    CONFIG.schedule.models.push({name:'新機種',daily:new Array(days.length).fill(0)});
+    buildScheduleEditor();
+  }
+  function removeModel(i) { CONFIG.schedule.models.splice(i,1); buildScheduleEditor(); }
+
+  /* アンドンセルエディタ */
+  const CELL_COLORS = ['green','red','blue','yellow','black','empty'];
+  function buildCellCfgGrid() {
+    document.getElementById('cellCfgGrid').innerHTML = CONFIG.andonCells.map((c,i)=>`
+      <div class="cell-cfg-item">
+        <input class="cfg-input" value="${c.num}" onchange="CONFIG.andonCells[${i}].num=this.value" style="font-size:9px;padding:2px 4px;text-align:center;">
+        <select class="cell-cfg-sel" onchange="CONFIG.andonCells[${i}].color=this.value">
+          ${CELL_COLORS.map(col=>`<option value="${col}" ${c.color===col?'selected':''}>${col}</option>`).join('')}
+        </select>
+      </div>`).join('');
+  }
+  function addAndonCell() {
+    CONFIG.andonCells.push({num:'',color:'green'});
+    buildCellCfgGrid();
+  }
+
+  /* 反映 */
+  function applyCfg() {
+    /* 基本情報 */
+    const ht = document.querySelector('.header-title');
+    const hs = document.querySelector('.header-sub');
+    if(ht) ht.textContent = document.getElementById('cfgLineTitle').value;
+    if(hs) hs.textContent = document.getElementById('cfgLineSub').value;
+    CONFIG.andon.lineName = document.getElementById('cfgAndonLine').value;
+    CONFIG.andon.taktTime = document.getElementById('cfgTakt').value;
+    CONFIG.andon.plan = parseInt(document.getElementById('cfgAndonPlan').value) || 2945;
+
+    /* カラー */
+    const r = document.documentElement.style;
+    r.setProperty('--bg-base',  document.getElementById('cfgBg').value);
+    r.setProperty('--bg-panel', document.getElementById('cfgPanel').value);
+    r.setProperty('--bg-deep',  document.getElementById('cfgBg').value);
+    r.setProperty('--cyan',     document.getElementById('cfgCyan').value);
+    r.setProperty('--green',    document.getElementById('cfgGreen').value);
+    r.setProperty('--amber',    document.getElementById('cfgAmber').value);
+    r.setProperty('--red',      document.getElementById('cfgRed').value);
+
+    /* 稼働日更新 */
+    CONFIG.schedule.days = document.getElementById('cfgDays').value.split(',').map(d=>parseInt(d.trim())).filter(n=>!isNaN(n));
+
+    /* 再描画 */
+    buildTable();
+    updateCurrentPanel();
+    applyTodayPlan();
+    buildAndon();
+    initCellStates();
+    document.getElementById('anLineName').textContent = CONFIG.andon.lineName;
+    document.getElementById('anTakt').textContent     = CONFIG.andon.taktTime;
+
+    const btn = document.querySelector('.cfg-apply');
+    btn.textContent = '✔　反映しました！';
+    setTimeout(()=>{ btn.textContent = '✔　反映'; }, 1500);
+  }
+
+  /* HTMLダウンロード */
+  function downloadDashboard() {
+    applyCfg();
+    const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'es10_production_dashboard.html';
+    a.click();
+  }
+
   buildAndon();
   applyTodayPlan();
   initCellStates();
   updateCurrentPanel();
   updateStatusBar();
 </script>
+<!-- ─── 設定FABボタン ─── -->
+<button class="cfg-fab" onclick="openCfg()" title="設定">⚙</button>
+
+<!-- ─── 設定パネル ─── -->
+<div class="cfg-overlay" id="cfgOverlay" onclick="cfgOverlayClick(event)">
+  <div class="cfg-panel" onclick="event.stopPropagation()">
+    <div class="cfg-hdr">
+      <span class="cfg-hdr-title">⚙　ダッシュボード設定</span>
+      <button class="cfg-close" onclick="closeCfg()">✕</button>
+    </div>
+    <div class="cfg-body">
+
+      <!-- ① 基本情報 -->
+      <div class="cfg-sec">
+        <div class="cfg-sec-title">■ 基本情報</div>
+        <div class="cfg-row"><div class="cfg-label">ライン名（ヘッダータイトル）</div><input class="cfg-input" id="cfgLineTitle" type="text"></div>
+        <div class="cfg-row"><div class="cfg-label">サブタイトル</div><input class="cfg-input" id="cfgLineSub" type="text"></div>
+        <div class="cfg-2col">
+          <div class="cfg-row"><div class="cfg-label">タクトタイム</div><input class="cfg-input" id="cfgTakt" type="text"></div>
+          <div class="cfg-row"><div class="cfg-label">作業者数</div><input class="cfg-input" id="cfgWorkers" type="text"></div>
+        </div>
+      </div>
+
+      <!-- ② カラーテーマ -->
+      <div class="cfg-sec">
+        <div class="cfg-sec-title">■ カラーテーマ</div>
+        <div class="cfg-2col">
+          <div class="cfg-row"><div class="cfg-label">背景色</div><input class="cfg-input" id="cfgBg" type="color"></div>
+          <div class="cfg-row"><div class="cfg-label">パネル色</div><input class="cfg-input" id="cfgPanel" type="color"></div>
+          <div class="cfg-row"><div class="cfg-label">アクセント（シアン）</div><input class="cfg-input" id="cfgCyan" type="color"></div>
+          <div class="cfg-row"><div class="cfg-label">グリーン（実績）</div><input class="cfg-input" id="cfgGreen" type="color"></div>
+          <div class="cfg-row"><div class="cfg-label">アンバー（警告）</div><input class="cfg-input" id="cfgAmber" type="color"></div>
+          <div class="cfg-row"><div class="cfg-label">レッド（異常）</div><input class="cfg-input" id="cfgRed" type="color"></div>
+        </div>
+      </div>
+
+      <!-- ③ 生産指示リスト -->
+      <div class="cfg-sec">
+        <div class="cfg-sec-title">■ 生産指示リスト（行を編集）</div>
+        <div id="rowsEditor"></div>
+        <button class="cfg-btn cfg-apply" style="margin-top:8px;" onclick="addRow()">＋ 行を追加</button>
+      </div>
+
+      <!-- ④ 生産日程表（月度計画） -->
+      <div class="cfg-sec">
+        <div class="cfg-sec-title">■ 生産日程表（機種・日別計画台数）</div>
+        <div class="cfg-row"><div class="cfg-label">稼働日（カンマ区切り 例: 1,2,3,6,7...）</div>
+          <input class="cfg-input" id="cfgDays" type="text">
+        </div>
+        <div id="scheduleEditor"></div>
+        <button class="cfg-btn cfg-apply" style="margin-top:8px;" onclick="addModel()">＋ 機種を追加</button>
+      </div>
+
+      <!-- ⑤ アンドン設定 -->
+      <div class="cfg-sec">
+        <div class="cfg-sec-title">■ アンドン設定</div>
+        <div class="cfg-2col">
+          <div class="cfg-row"><div class="cfg-label">ライン名（アンドン表示）</div><input class="cfg-input" id="cfgAndonLine" type="text"></div>
+          <div class="cfg-row"><div class="cfg-label">計画台数</div><input class="cfg-input" id="cfgAndonPlan" type="number"></div>
+        </div>
+        <div class="cfg-row"><div class="cfg-label">アンドンセル（工程番号と初期色）</div></div>
+        <div class="cell-cfg-grid" id="cellCfgGrid"></div>
+        <button class="cfg-btn cfg-apply" style="margin-top:4px;" onclick="addAndonCell()">＋ セル追加</button>
+      </div>
+
+    </div>
+    <div class="cfg-footer">
+      <button class="cfg-btn cfg-apply" onclick="applyCfg()">✔　反映</button>
+      <button class="cfg-btn cfg-dl"    onclick="downloadDashboard()">↓　HTMLを保存</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
