@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作業者配置図</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#050d1a;--panel:#0a1a30;--border:#0e2a4a;
+  --cyan:#00d4ff;--gold:#f5c842;--green:#00e676;--amber:#ffab00;--red:#ff4444;--blue:#4488ff;
+  --text:#d0e8f8;--muted:#4a6a8a;
+  --mono:'Share Tech Mono',monospace;--sans:'Noto Sans JP',sans-serif;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 400px at 20% 30%,rgba(0,100,200,0.12) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,180,255,0.03) 3px,rgba(0,180,255,0.03) 4px);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 16px 60px;}
+
+header{padding:20px 0 0;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.header-inner{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:14px;flex-wrap:wrap;gap:10px;}
+.back-btn{font-family:var(--mono);font-size:11px;color:var(--cyan);border:1px solid var(--cyan);background:transparent;padding:5px 12px;border-radius:4px;cursor:pointer;text-decoration:none;letter-spacing:1px;transition:all .2s;}
+.back-btn:hover{background:rgba(0,212,255,.1);}
+.page-title{font-family:var(--mono);font-size:clamp(16px,3vw,24px);color:var(--gold);letter-spacing:3px;}
+.clock-time{font-family:var(--mono);font-size:20px;color:var(--cyan);letter-spacing:2px;}
+.clock-date{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right;}
+
+/* ツールバー */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.tb-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
+.tb-edit{border-color:var(--amber);color:var(--amber);background:rgba(255,171,0,.08);}
+.tb-edit:hover{background:rgba(255,171,0,.2);}
+.tb-edit.active{background:rgba(255,171,0,.2);box-shadow:0 0 8px rgba(255,171,0,.3);}
+.tb-save{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.08);}
+.tb-save:hover{background:rgba(0,230,118,.2);}
+.tb-add{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.08);}
+.tb-add:hover{background:rgba(0,212,255,.2);}
+.tb-dl{border-color:var(--blue);color:var(--blue);background:rgba(68,136,255,.08);}
+.tb-dl:hover{background:rgba(68,136,255,.2);}
+.tb-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;padding:0 6px;}
+
+/* シフト選択 */
+.shift-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.shift-tab{font-family:var(--mono);font-size:11px;padding:6px 16px;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--muted);cursor:pointer;transition:all .2s;}
+.shift-tab.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.08);}
+
+/* 日付バー */
+.date-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.date-btn{font-family:var(--mono);font-size:16px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:4px;width:28px;height:28px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.date-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.date-display{font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:2px;}
+
+/* 配置テーブル */
+.layout-table-wrap{overflow-x:auto;}
+table.layout-table{border-collapse:collapse;width:100%;min-width:600px;}
+table.layout-table th{background:#0d2040;color:var(--cyan);font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:8px 12px;border:1px solid var(--border);text-align:center;white-space:nowrap;}
+table.layout-table td{border:1px solid var(--border);padding:0;vertical-align:middle;}
+.cell-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;gap:8px;min-height:46px;}
+.cell-proc{font-family:var(--mono);font-size:11px;color:var(--cyan);min-width:50px;}
+.cell-name{font-size:13px;color:var(--text);font-weight:500;flex:1;text-align:center;}
+.cell-name.empty{color:var(--muted);font-size:11px;}
+.cell-edit-btn{font-size:12px;opacity:0;cursor:pointer;transition:opacity .2s;background:transparent;border:none;color:var(--amber);}
+.cell-inner:hover .cell-edit-btn{opacity:1;}
+tr.group-row td{background:#061a2e;}
+tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.group-label{font-family:var(--mono);font-size:9px;color:var(--gold);padding:4px 12px;background:#061220;border-bottom:1px solid var(--border);letter-spacing:2px;}
+
+/* 統計 */
+.stats-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 16px;text-align:center;min-width:90px;}
+.stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--green);}
+.stat-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:1px;}
+
+/* 編集モーダル */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#081428;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:8px;padding:24px 28px;width:min(400px,90vw);}
+.modal-title{font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:2px;margin-bottom:16px;}
+.modal-row{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;}
+.modal-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
+.modal-input{background:#0a1a30;border:1px solid var(--border);border-radius:4px;padding:8px 10px;color:var(--text);font-family:var(--sans);font-size:14px;width:100%;}
+.modal-input:focus{outline:none;border-color:var(--gold);}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.m-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:7px 18px;border-radius:4px;cursor:pointer;border:1px solid;transition:all .2s;}
+.m-ok{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.1);}
+.m-ok:hover{background:rgba(0,230,118,.25);}
+.m-cancel{border-color:var(--border);color:var(--muted);background:transparent;}
+.m-cancel:hover{border-color:var(--text);color:var(--text);}
+.m-del{border-color:var(--red);color:var(--red);background:rgba(255,68,68,.08);}
+.m-del:hover{background:rgba(255,68,68,.2);}
+
+/* 印刷 */
+@media print{
+  body{background:#fff;color:#000;}
+  body::before,body::after{display:none;}
+  .toolbar,.shift-tabs,.date-bar,.stats-bar,.back-btn,.cell-edit-btn{display:none!important;}
+  table.layout-table th{background:#e8f0fe;color:#000;}
+  table.layout-table td,table.layout-table th{border:1px solid #ccc;}
+  .cell-name{color:#000;}
+  .cell-proc{color:#1a6b9a;}
+  .group-label{background:#f5f5f5;color:#555;}
+}
+@media(max-width:600px){
+  .stats-bar{gap:8px;}
+  .stat-card{min-width:70px;padding:8px 10px;}
+  .stat-val{font-size:18px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-inner">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <a class="back-btn" href="index.html">← ホーム</a>
+        <div class="page-title">作業者配置図</div>
+      </div>
+      <div>
+        <div class="clock-time" id="clk">--:--:--</div>
+        <div class="clock-date" id="clkd">----年--月--日</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 日付ナビ -->
+  <div class="date-bar">
+    <button class="date-btn" onclick="changeDate(-1)">‹</button>
+    <span class="date-display" id="dateDisplay">----年--月--日</span>
+    <button class="date-btn" onclick="changeDate(1)">›</button>
+    <button class="tb-btn tb-add" style="font-size:9px;padding:4px 10px;margin-left:8px;" onclick="goToday()">今日</button>
+  </div>
+
+  <!-- シフトタブ -->
+  <div class="shift-tabs">
+    <div class="shift-tab active" onclick="setShift('day',this)">日勤</div>
+    <div class="shift-tab" onclick="setShift('night',this)">夜勤</div>
+  </div>
+
+  <!-- ツールバー -->
+  <div class="toolbar">
+    <button class="tb-btn tb-edit" id="editToggle" onclick="toggleEdit()">✏ 編集モード</button>
+    <button class="tb-btn tb-save" onclick="saveData()">💾 保存</button>
+    <button class="tb-btn tb-add" onclick="addProcess()">＋ 工程追加</button>
+    <button class="tb-btn tb-dl" onclick="window.print()">🖨 印刷</button>
+    <span class="tb-label" id="editStatus">閲覧モード</span>
+  </div>
+
+  <!-- 統計 -->
+  <div class="stats-bar" id="statsBar"></div>
+
+  <!-- テーブル -->
+  <div class="layout-table-wrap">
+    <table class="layout-table" id="layoutTable"></table>
+  </div>
+</div>
+
+<!-- 編集モーダル -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">作業者を編集</div>
+    <div class="modal-row">
+      <div class="modal-label">工程番号</div>
+      <input class="modal-input" id="modalProc" type="text" placeholder="例: 042">
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">作業者名</div>
+      <input class="modal-input" id="modalName" type="text" placeholder="氏名を入力">
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">備考</div>
+      <input class="modal-input" id="modalNote" type="text" placeholder="応援・教育など（任意）">
+    </div>
+    <div class="modal-btns">
+      <button class="m-btn m-del" onclick="clearCell()">クリア</button>
+      <button class="m-btn m-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="m-btn m-ok" onclick="saveCell()">✔ 保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════ 初期データ ════ */
+const PROCESSES = [
+  {group:'前工程（1〜100）', procs:[
+    {num:'1', label:'工程1'},   {num:'2', label:'工程2'},   {num:'3', label:'工程3'},
+    {num:'4', label:'工程4'},   {num:'5', label:'工程5'},   {num:'6', label:'工程6'},
+    {num:'7', label:'工程7'},   {num:'8', label:'工程8'},   {num:'9', label:'工程9'},
+    {num:'10', label:'工程10'}, {num:'12', label:'工程12'}, {num:'15', label:'工程15'},
+    {num:'20', label:'工程20'}, {num:'30', label:'工程30'}, {num:'31', label:'工程31'},
+    {num:'32', label:'工程32'}, {num:'35', label:'工程35'}, {num:'36', label:'工程36'},
+    {num:'40', label:'工程40'}, {num:'50', label:'工程50'}, {num:'75', label:'工程75'},
+    {num:'80', label:'工程80'}, {num:'90', label:'工程90'}, {num:'95', label:'工程95'},
+    {num:'100', label:'工程100'},
+  ]},
+  {group:'後工程（101〜220）', procs:[
+    {num:'105', label:'工程105'},{num:'110', label:'工程110'},{num:'120', label:'工程120'},
+    {num:'130', label:'工程130'},{num:'140', label:'工程140'},{num:'142', label:'工程142'},
+    {num:'143', label:'工程143'},{num:'150', label:'工程150'},{num:'151', label:'工程151'},
+    {num:'155', label:'工程155'},{num:'160', label:'工程160'},{num:'165', label:'工程165'},
+    {num:'170', label:'工程170'},{num:'180', label:'工程180'},{num:'181', label:'工程181'},
+    {num:'200', label:'工程200'},{num:'202', label:'工程202'},{num:'210', label:'工程210'},
+    {num:'212', label:'工程212'},{num:'220', label:'工程220'},
+  ]},
+  {group:'特殊工程', procs:[
+    {num:'C2', label:'C2'},{num:'C99', label:'C99'},{num:'D9', label:'D9'},
+    {num:'AG', label:'AG'},{num:'KC', label:'KC'},
+  ]},
+];
+
+let currentDate = new Date();
+let currentShift = 'day';
+let editMode = false;
+let editingKey = null;
+// layoutData[dateKey][shift][procNum] = {name, note}
+let layoutData = JSON.parse(localStorage.getItem('layoutData')||'{}');
+
+function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function dateLabel(d){
+  const days=['日','月','火','水','木','金','土'];
+  return `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月${String(d.getDate()).padStart(2,'0')}日（${days[d.getDay()]}）`;
+}
+function getCell(proc){ const k=dateKey(currentDate); return layoutData[k]?.[currentShift]?.[proc]||{name:'',note:''}; }
+function setCell(proc,val){
+  const k=dateKey(currentDate);
+  if(!layoutData[k]) layoutData[k]={};
+  if(!layoutData[k][currentShift]) layoutData[k][currentShift]={};
+  layoutData[k][currentShift][proc]=val;
+}
+
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clk').textContent=now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clkd').textContent=dateLabel(now);
+}
+setInterval(updateClock,1000); updateClock();
+
+function updateDateDisplay(){ document.getElementById('dateDisplay').textContent=dateLabel(currentDate); }
+function changeDate(d){ currentDate.setDate(currentDate.getDate()+d); updateDateDisplay(); render(); }
+function goToday(){ currentDate=new Date(); updateDateDisplay(); render(); }
+function setShift(s,tab){
+  currentShift=s;
+  document.querySelectorAll('.shift-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  render();
+}
+function toggleEdit(){
+  editMode=!editMode;
+  const btn=document.getElementById('editToggle');
+  const st=document.getElementById('editStatus');
+  btn.classList.toggle('active',editMode);
+  st.textContent=editMode?'編集モード（セルをクリック）':'閲覧モード';
+  render();
+}
+function saveData(){
+  localStorage.setItem('layoutData',JSON.stringify(layoutData));
+  const btn=document.querySelector('.tb-save');
+  btn.textContent='✔ 保存しました';
+  setTimeout(()=>btn.textContent='💾 保存',1500);
+}
+
+function render(){
+  updateDateDisplay();
+  renderStats();
+  const tbl=document.getElementById('layoutTable');
+  let html=`<thead><tr><th>グループ</th><th>工程番号</th><th>作業者名</th><th>備考</th></tr></thead><tbody>`;
+  PROCESSES.forEach(group=>{
+    html+=`<tr><td colspan="4" class="group-label">◆ ${group.group}</td></tr>`;
+    group.procs.forEach(p=>{
+      const cell=getCell(p.num);
+      const hasName=!!cell.name;
+      html+=`<tr>
+        <td></td>
+        <td><div class="cell-inner"><span class="cell-proc">${p.num}</span></div></td>
+        <td><div class="cell-inner" ${editMode?`onclick="openModal('${p.num}','${p.label}')" style="cursor:pointer"`:''}> 
+          <span class="cell-name${hasName?'':' empty'}">${hasName?cell.name:'（未配置）'}</span>
+          ${editMode?`<button class="cell-edit-btn" onclick="openModal('${p.num}','${p.label}')">✏</button>`:''}
+        </div></td>
+        <td><div class="cell-inner"><span style="font-size:11px;color:var(--muted);">${cell.note||''}</span></div></td>
+      </tr>`;
+    });
+  });
+  html+=`</tbody>`;
+  tbl.innerHTML=html;
+}
+
+function renderStats(){
+  const k=dateKey(currentDate);
+  const shift=layoutData[k]?.[currentShift]||{};
+  const allProcs=PROCESSES.flatMap(g=>g.procs);
+  const assigned=allProcs.filter(p=>shift[p.num]?.name).length;
+  const total=allProcs.length;
+  const names=[...new Set(allProcs.map(p=>shift[p.num]?.name).filter(Boolean))];
+  document.getElementById('statsBar').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${assigned}</div><div class="stat-lbl">配置済み工程</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--amber)">${total-assigned}</div><div class="stat-lbl">未配置工程</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--cyan)">${names.length}</div><div class="stat-lbl">作業者人数</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--muted)">${total}</div><div class="stat-lbl">総工程数</div></div>`;
+}
+
+let modalProcNum='';
+function openModal(proc, label){
+  if(!editMode) return;
+  modalProcNum=proc;
+  const cell=getCell(proc);
+  document.getElementById('modalTitle').textContent=`工程 ${proc}　作業者を編集`;
+  document.getElementById('modalProc').value=proc;
+  document.getElementById('modalName').value=cell.name||'';
+  document.getElementById('modalNote').value=cell.note||'';
+  document.getElementById('editModal').classList.add('open');
+  setTimeout(()=>document.getElementById('modalName').focus(),100);
+}
+function closeModal(){ document.getElementById('editModal').classList.remove('open'); }
+function saveCell(){
+  const name=document.getElementById('modalName').value.trim();
+  const note=document.getElementById('modalNote').value.trim();
+  setCell(modalProcNum,{name,note});
+  saveData();
+  closeModal();
+  render();
+}
+function clearCell(){
+  setCell(modalProcNum,{name:'',note:''});
+  saveData();
+  closeModal();
+  render();
+}
+function addProcess(){
+  const num=prompt('追加する工程番号を入力してください:');
+  if(!num||!num.trim()) return;
+  const n=num.trim();
+  /* 既存チェック */
+  const exists=PROCESSES.flatMap(g=>g.procs).some(p=>p.num===n);
+  if(exists){ alert('その工程番号はすでに存在します'); return; }
+  PROCESSES[PROCESSES.length-1].procs.push({num:n,label:`工程${n}`});
+  render();
+}
+
+/* Enterキーで保存 */
+document.addEventListener('keydown', e=>{ if(e.key==='Enter'&&document.getElementById('editModal').classList.contains('open')) saveCell(); });
+document.getElementById('editModal').addEventListener('click', e=>{ if(e.target===document.getElementById('editModal')) closeModal(); });
+
+updateDateDisplay();
+render();
+</script>
+</body>
+</html>

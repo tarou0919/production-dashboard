@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>朝礼資料</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#050d1a;--panel:#0a1a30;--border:#0e2a4a;
+  --cyan:#00d4ff;--gold:#f5c842;--green:#00e676;--amber:#ffab00;--red:#ff4444;--blue:#4488ff;
+  --text:#d0e8f8;--muted:#4a6a8a;
+  --mono:'Share Tech Mono',monospace;--sans:'Noto Sans JP',sans-serif;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 400px at 20% 30%,rgba(0,100,200,0.12) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,180,255,0.03) 3px,rgba(0,180,255,0.03) 4px);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 16px 60px;}
+
+/* ヘッダー */
+header{padding:20px 0 0;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.header-inner{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:14px;flex-wrap:wrap;gap:10px;}
+.back-btn{font-family:var(--mono);font-size:11px;color:var(--cyan);border:1px solid var(--cyan);background:transparent;padding:5px 12px;border-radius:4px;cursor:pointer;text-decoration:none;letter-spacing:1px;transition:all .2s;}
+.back-btn:hover{background:rgba(0,212,255,.1);}
+.page-title{font-family:var(--mono);font-size:clamp(16px,3vw,24px);color:var(--gold);letter-spacing:3px;}
+.clock-time{font-family:var(--mono);font-size:20px;color:var(--cyan);letter-spacing:2px;}
+.clock-date{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right;}
+
+/* 日付タブ */
+.date-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.date-tab{font-family:var(--mono);font-size:11px;padding:6px 14px;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.date-tab.active{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.08);}
+.date-tab:hover{border-color:var(--gold);color:var(--gold);}
+
+/* メインエリア */
+.main-grid{display:grid;grid-template-columns:280px 1fr;gap:16px;}
+
+/* 左：ファイルリスト */
+.file-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.file-panel-title{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:2px;padding:10px 14px;background:#061220;border-bottom:1px solid var(--border);}
+.file-list{padding:8px;}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:4px;cursor:pointer;transition:background .2s;margin-bottom:4px;}
+.file-item:hover{background:rgba(0,212,255,.06);}
+.file-item.active{background:rgba(0,212,255,.1);border-left:2px solid var(--cyan);}
+.file-icon{font-size:18px;flex-shrink:0;}
+.file-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-date{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;}
+.file-empty{font-family:var(--mono);font-size:10px;color:var(--muted);padding:20px;text-align:center;line-height:2;}
+
+/* アップロードゾーン */
+.upload-zone{border:2px dashed var(--border);border-radius:6px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin:8px;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--cyan);background:rgba(0,212,255,.04);}
+.upload-zone input{display:none;}
+.upload-label{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:2;cursor:pointer;}
+.upload-label span{color:var(--cyan);}
+
+/* 右：プレビュー */
+.preview-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;}
+.preview-toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#061220;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.preview-filename{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;}
+.preview-btn{font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:3px;cursor:pointer;border:1px solid;transition:all .2s;letter-spacing:1px;}
+.pb-dl{border-color:var(--blue);color:var(--blue);background:rgba(68,136,255,.1);}
+.pb-dl:hover{background:rgba(68,136,255,.2);}
+.pb-del{border-color:var(--red);color:var(--red);background:rgba(255,68,68,.08);}
+.pb-del:hover{background:rgba(255,68,68,.2);}
+.preview-body{flex:1;min-height:500px;display:flex;align-items:center;justify-content:center;}
+.preview-body iframe{width:100%;height:600px;border:none;}
+.preview-body .no-file{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;line-height:2.5;}
+.preview-body img{max-width:100%;max-height:600px;object-fit:contain;}
+
+/* Excelビューア */
+.excel-table-wrap{width:100%;overflow:auto;max-height:600px;padding:8px;}
+.excel-table{border-collapse:collapse;font-size:12px;font-family:var(--sans);}
+.excel-table th{background:#0d2040;color:var(--cyan);font-family:var(--mono);font-size:10px;padding:5px 10px;border:1px solid var(--border);white-space:nowrap;}
+.excel-table td{padding:5px 10px;border:1px solid var(--border);color:var(--text);white-space:nowrap;}
+.excel-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+
+/* スマホ */
+@media(max-width:700px){
+  .main-grid{grid-template-columns:1fr;}
+  .preview-body iframe{height:400px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-inner">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <a class="back-btn" href="index.html">← ホーム</a>
+        <div class="page-title">朝礼資料</div>
+      </div>
+      <div>
+        <div class="clock-time" id="clk">--:--:--</div>
+        <div class="clock-date" id="clkd">----年--月--日</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 日付タブ -->
+  <div class="date-tabs" id="dateTabs"></div>
+
+  <div class="main-grid">
+    <!-- 左：ファイルリスト -->
+    <div>
+      <div class="file-panel">
+        <div class="file-panel-title">■ 資料リスト</div>
+        <div class="file-list" id="fileList">
+          <div class="file-empty">資料がありません<br>下からファイルを<br>アップロードしてください</div>
+        </div>
+        <!-- アップロード -->
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.png,.jpg,.jpeg" multiple onchange="handleFiles(this.files)">
+          <label class="upload-label" for="fileInput">
+            <div style="font-size:24px;margin-bottom:6px;">📎</div>
+            <span>クリックまたはドロップ</span><br>
+            PDF / Excel / 画像
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：プレビュー -->
+    <div class="preview-panel">
+      <div class="preview-toolbar">
+        <span class="preview-filename" id="previewName">ファイルを選択してください</span>
+        <button class="preview-btn pb-dl" id="dlBtn" style="display:none" onclick="downloadCurrent()">↓ ダウンロード</button>
+        <button class="preview-btn pb-del" id="delBtn" style="display:none" onclick="deleteCurrent()">削除</button>
+      </div>
+      <div class="preview-body" id="previewBody">
+        <div class="no-file">左のリストからファイルを選択<br>または新しいファイルをアップロード</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let files = JSON.parse(localStorage.getItem('morningFiles')||'[]');
+let currentIdx = -1;
+let fileDataMap = JSON.parse(localStorage.getItem('morningFileData')||'{}');
+
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clk').textContent=now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d=now.toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const p=d.split('/');
+  document.getElementById('clkd').textContent=p.length===3?`${p[0]}年${p[1]}月${p[2]}日`:d;
+}
+setInterval(updateClock,1000); updateClock();
+
+function saveFiles(){ localStorage.setItem('morningFiles', JSON.stringify(files)); }
+
+function handleFiles(fileList){
+  Array.from(fileList).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const id = 'f_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      const today = new Date().toLocaleDateString('ja-JP',{month:'2-digit',day:'2-digit'});
+      const entry = { id, name:file.name, date:today, type:file.type, size:file.size };
+      files.unshift(entry);
+      fileDataMap[id] = e.target.result;
+      try{ localStorage.setItem('morningFileData', JSON.stringify(fileDataMap)); }catch(e){
+        alert('ファイルが大きすぎてブラウザ保存できません。セッション中のみ表示します。');
+      }
+      saveFiles();
+      renderFileList();
+      selectFile(0);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ドラッグ&ドロップ */
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', ()=>zone.classList.remove('drag'));
+zone.addEventListener('drop', e=>{ e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+
+function renderFileList(){
+  const el = document.getElementById('fileList');
+  if(files.length===0){
+    el.innerHTML='<div class="file-empty">資料がありません<br>下からファイルを<br>アップロードしてください</div>';
+    return;
+  }
+  el.innerHTML = files.map((f,i)=>{
+    const icon = f.name.endsWith('.pdf') ? '📄' : f.name.match(/\.(xlsx?)/i) ? '📊' : '🖼️';
+    return `<div class="file-item${i===currentIdx?' active':''}" onclick="selectFile(${i})">
+      <div class="file-icon">${icon}</div>
+      <div><div class="file-name">${f.name}</div><div class="file-date">${f.date}</div></div>
+    </div>`;
+  }).join('');
+  buildDateTabs();
+}
+
+function buildDateTabs(){
+  const dates = [...new Set(files.map(f=>f.date))];
+  const el = document.getElementById('dateTabs');
+  el.innerHTML = '<div class="date-tab active" onclick="filterDate(\'all\',this)">すべて</div>' +
+    dates.map(d=>`<div class="date-tab" onclick="filterDate('${d}',this)">${d}</div>`).join('');
+}
+
+function filterDate(date, tab){
+  document.querySelectorAll('.date-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  const el = document.getElementById('fileList');
+  const filtered = date==='all' ? files : files.filter(f=>f.date===date);
+  if(filtered.length===0){ el.innerHTML='<div class="file-empty">この日の資料はありません</div>'; return; }
+  el.innerHTML = filtered.map((f,i)=>{
+    const origIdx = files.indexOf(f);
+    const icon = f.name.endsWith('.pdf')?'📄':f.name.match(/\.(xlsx?)/i)?'📊':'🖼️';
+    return `<div class="file-item" onclick="selectFile(${origIdx})">
+      <div class="file-icon">${icon}</div>
+      <div><div class="file-name">${f.name}</div><div class="file-date">${f.date}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function selectFile(idx){
+  currentIdx = idx;
+  const f = files[idx];
+  const data = fileDataMap[f.id];
+  document.getElementById('previewName').textContent = f.name;
+  document.getElementById('dlBtn').style.display = '';
+  document.getElementById('delBtn').style.display = '';
+  const body = document.getElementById('previewBody');
+
+  if(f.name.endsWith('.pdf')){
+    body.innerHTML = `<iframe src="${data}"></iframe>`;
+  } else if(f.name.match(/\.(xlsx?)$/i)){
+    try{
+      const ab = base64ToArrayBuffer(data.split(',')[1]);
+      const wb = XLSX.read(ab, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const htmlStr = XLSX.utils.sheet_to_html(ws, {id:'exSheet'});
+      body.innerHTML = `<div class="excel-table-wrap">${htmlStr}</div>`;
+      /* スタイル適用 */
+      const tbl = body.querySelector('table');
+      if(tbl){ tbl.className='excel-table';
+        tbl.querySelectorAll('tr:first-child td').forEach(td=>{ const th=document.createElement('th'); th.innerHTML=td.innerHTML; td.replaceWith(th); });
+      }
+    }catch(e){ body.innerHTML=`<div class="no-file">Excelの読み込みに失敗しました<br>${e.message}</div>`; }
+  } else {
+    body.innerHTML = `<img src="${data}" alt="${f.name}">`;
+  }
+  renderFileList();
+}
+
+function base64ToArrayBuffer(base64){
+  const bin = atob(base64);
+  const buf = new ArrayBuffer(bin.length);
+  const view = new Uint8Array(buf);
+  for(let i=0;i<bin.length;i++) view[i]=bin.charCodeAt(i);
+  return buf;
+}
+
+function downloadCurrent(){
+  if(currentIdx<0) return;
+  const f = files[currentIdx];
+  const a = document.createElement('a');
+  a.href = fileDataMap[f.id];
+  a.download = f.name;
+  a.click();
+}
+
+function deleteCurrent(){
+  if(currentIdx<0||!confirm(`「${files[currentIdx].name}」を削除しますか？`)) return;
+  const id = files[currentIdx].id;
+  delete fileDataMap[id];
+  files.splice(currentIdx,1);
+  saveFiles();
+  try{ localStorage.setItem('morningFileData', JSON.stringify(fileDataMap)); }catch(e){}
+  currentIdx = -1;
+  document.getElementById('previewName').textContent = 'ファイルを選択してください';
+  document.getElementById('dlBtn').style.display='none';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('previewBody').innerHTML='<div class="no-file">左のリストからファイルを選択<br>または新しいファイルをアップロード</div>';
+  renderFileList();
+}
+
+renderFileList();
+if(files.length>0) selectFile(0);
+</script>
+</body>
+</html>
