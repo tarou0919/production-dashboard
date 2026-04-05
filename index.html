@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="pageTitle">組立課　ホームページ</title>
+<title id="pageTitle">製造課　ホームページ（サンプル）</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -128,8 +128,8 @@ footer{border-top:1px solid var(--border);padding:16px 0;text-align:center;font-
   <header>
     <div class="header-inner">
       <div>
-        <div class="site-title" id="dispSiteTitle">組立課　ホームページ</div>
-        <div class="site-sub"   id="dispSiteSub">ES10 LINE　／　製造部　組立課</div>
+        <div class="site-title" id="dispSiteTitle">製造課　ホームページ（サンプル）</div>
+        <div class="site-sub"   id="dispSiteSub">A1 LINE　／　製造部　製造課（サンプル）</div>
       </div>
       <div>
         <div class="clock-time" id="clk">--:--:--</div>
@@ -139,7 +139,7 @@ footer{border-top:1px solid var(--border);padding:16px 0;text-align:center;font-
   </header>
   <div id="mainContent"></div>
 </div>
-<footer><div id="dispFooter">組立課　ホームページ　／　ES10 LINE　製造部　組立課</div></footer>
+<footer><div id="dispFooter">製造課　ホームページ（サンプル）　／　A1 LINE　製造部　製造課</div></footer>
 
 <!-- 設定ボタン -->
 <button class="settings-fab" onclick="openSettings()" title="設定">⚙</button>
@@ -203,9 +203,9 @@ footer{border-top:1px solid var(--border);padding:16px 0;text-align:center;font-
 <script>
 /* ════ データ ════ */
 let SITE = {
-  title:  '組立課　ホームページ',
-  sub:    'ES10 LINE　／　製造部　組立課',
-  footer: '組立課　ホームページ　／　ES10 LINE　製造部　組立課',
+  title:  '製造課　ホームページ（サンプル）',
+  sub:    'A1 LINE　／　製造部　製造課（サンプル）',
+  footer: '製造課　ホームページ（サンプル）　／　A1 LINE　製造部　製造課',
   colors: {
     bg:         '#050d1a',
     panel:      '#0a1a30',
@@ -216,7 +216,7 @@ let SITE = {
   },
   featured: {
     badge: 'LIVE　リアルタイム',
-    title: 'ES10ライン　生産管理ダッシュボード',
+    title: 'A1ライン　生産管理ダッシュボード',
     desc:  '直生産実績・出来高・アンドン・異常ログをリアルタイムで表示／生産指示リスト・前後工程実績・停止時間累計',
     link:  'es10_production_dashboard.html',
   },
@@ -229,34 +229,34 @@ let SITE = {
     },
     {
       id:'s1', title:'■ 生産管理', cards:[
-        {title:'ES10ライン　生産管理ダッシュボード', desc:'直生産実績・アンドン・異常ログをリアルタイム表示', icon:'📊', link:'es10_production_dashboard.html', tags:['ES'], status:'live'},
+        {title:'A1ライン　生産管理ダッシュボード', desc:'直生産実績・アンドン・異常ログをリアルタイム表示', icon:'📊', link:'es10_production_dashboard.html', tags:['ES'], status:'live'},
       ]
     },
     {
       id:'s2', title:'■ 設備保全・自主保全', cards:[
         {title:'設備保全進捗管理システム（自主保全システム）', desc:'設備の自主保全活動の進捗を管理・可視化するシステム', icon:'🔧', link:'#', tags:['ES','全体'], status:'live'},
-        {title:'S.E.I.T.A.Lo', desc:'設備・工程の総合管理ログシステム', icon:'📋', link:'#', tags:['ES'], status:'live'},
-        {title:'e-あんどん', desc:'電子アンドンによるライン異常の即時通知・記録システム', icon:'🔔', link:'#', tags:['ES'], status:'live'},
+        {title:'設備管理ロガー', desc:'設備・工程の稼働状態を記録・管理するシステム', icon:'📋', link:'#', tags:['ES'], status:'live'},
+        {title:'ライン異常通知システム', desc:'ラインの異常をリアルタイムで検知・通知・記録するシステム', icon:'🔔', link:'#', tags:['ES'], status:'live'},
       ]
     },
     {
       id:'s3', title:'■ 品質・手直しログ', cards:[
-        {title:'手直しログ　登録', desc:'手直し発生内容を現場からリアルタイムで登録', icon:'✏️', link:'#', tags:['ES・SB','INV'], status:'live'},
-        {title:'手直しログ　見える化', desc:'手直し発生状況をグラフ・集計で分析・見える化', icon:'📊', link:'#', tags:['ES・SB','INV'], status:'live'},
+        {title:'手直しログ　登録', desc:'手直し発生内容を現場からリアルタイムで登録', icon:'✏️', link:'#', tags:['A1・A2','B2'], status:'live'},
+        {title:'手直しログ　見える化', desc:'手直し発生状況をグラフ・集計で分析・見える化', icon:'📊', link:'#', tags:['A1・A2','B2'], status:'live'},
       ]
     },
     {
       id:'s4', title:'■ 生産効率・非直数・非可動', cards:[
         {title:'非直数　見える化', desc:'直接生産に寄与しない作業の発生状況を可視化', icon:'📉', link:'#', tags:['ES'], status:'live'},
-        {title:'非可動　見える化', desc:'設備・ラインの停止・非稼働状況を可視化・分析', icon:'⏸️', link:'#', tags:['ES','MO'], status:'live'},
-        {title:'日々総合効率　みえる化', desc:'OEE（総合設備効率）を日次で集計・グラフ表示', icon:'📈', link:'#', tags:['ES','全体','MO','INV'], status:'live'},
+        {title:'非可動　見える化', desc:'設備・ラインの停止・非稼働状況を可視化・分析', icon:'⏸️', link:'#', tags:['ES','C3'], status:'live'},
+        {title:'日々総合効率　みえる化', desc:'OEE（総合設備効率）を日次で集計・グラフ表示', icon:'📈', link:'#', tags:['ES','全体','C3','B2'], status:'live'},
       ]
     },
     {
       id:'s5', title:'■ 原価生産・ライン管理板', cards:[
         {title:'原価生産ライン管理板・ES　1枚目', desc:'ESラインの原価・生産状況をまとめた管理板（1枚目）', icon:'🗂️', link:'#', tags:['ES'], status:'live'},
         {title:'原価生産ライン管理板・ES　2枚目', desc:'ESラインの原価・生産状況をまとめた管理板（2枚目）', icon:'🗂️', link:'#', tags:['ES'], status:'live'},
-        {title:'原価生産ライン管理板　INV（工事中）', desc:'INVラインの管理板（現在工事中・準備中）', icon:'🚧', link:'#', tags:['INV','工事中'], status:'wip'},
+        {title:'原価生産ライン管理板　B2（工事中）', desc:'B2ラインの管理板（現在工事中・準備中）', icon:'🚧', link:'#', tags:['B2','工事中'], status:'wip'},
       ]
     },
   ]
@@ -264,8 +264,8 @@ let SITE = {
 
 /* タグ→CSSクラスマッピング */
 const TAG_MAP = {
-  'ES':'tag-es','ES・SB':'tag-es','SB':'tag-sb','INV':'tag-inv',
-  'MO':'tag-mo','全体':'tag-all','使用':'tag-all','工事中':'tag-wip',
+  'ES':'tag-es','A1・A2':'tag-es','SB':'tag-sb','B2':'tag-inv',
+  'C3':'tag-mo','全体':'tag-all','使用':'tag-all','工事中':'tag-wip',
 };
 function tagClass(t){ return TAG_MAP[t]||'tag-all'; }
 

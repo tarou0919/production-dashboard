@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ES10 ライン 生産管理システム</title>
+  <title>A1 ライン 生産管理システム</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
@@ -761,8 +761,8 @@
   <!-- ─── Header ─── -->
   <div class="header">
     <div class="header-left">
-      <span class="header-title">ES10 ライン　生産管理システム</span>
-      <span class="header-sub">伝票発行パソコン　／　コンプレッサ組立ライン</span>
+      <span class="header-title">A1 ライン　生産管理システム</span>
+      <span class="header-sub">製造管理端末　／　コンプレッサ組立ライン（サンプル）</span>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <button class="holiday-btn" id="resetBtn" onclick="showResetModal()" style="border-color:var(--red);color:var(--red);">週初めリセット</button>
@@ -859,7 +859,7 @@
           <div class="tbl-head-cell" style="text-align:left">生産日</div>
           <div class="tbl-head-cell" style="text-align:left">順序No</div>
           <div class="tbl-head-cell">台数</div>
-          <div class="tbl-head-cell" style="text-align:left">DC品番</div>
+          <div class="tbl-head-cell" style="text-align:left">品番</div>
           <div class="tbl-head-cell">出来高</div>
           <div class="tbl-head-cell">出荷</div>
           <div class="tbl-head-cell">残数</div>
@@ -870,8 +870,8 @@
       <div class="side-panel">
         <div class="info-card">
           <div class="card-title">■ 現在処理中</div>
-          <div class="info-row"><span class="info-key">DC品番</span><span class="info-val val-cyan">042400-3560</span></div>
-          <div class="info-row"><span class="info-key">品名</span><span class="info-val">ESB27C</span></div>
+          <div class="info-row"><span class="info-key">品番</span><span class="info-val val-cyan">100-0003</span></div>
+          <div class="info-row"><span class="info-key">品名</span><span class="info-val">XB20</span></div>
           <div class="info-row"><span class="info-key">計画数</span><span class="info-val">1,000</span></div>
           <div class="info-row"><span class="info-key">出来高</span><span class="info-val val-green" id="sideDek">680</span></div>
           <div class="info-row"><span class="info-key">出荷数</span><span class="info-val val-cyan">432</span></div>
@@ -918,7 +918,7 @@
       <div class="andon-status">
 
         <div class="andon-header-card">
-          <div class="andon-line-name" id="anLineName">ES10</div>
+          <div class="andon-line-name" id="anLineName">A1</div>
           <div>
             <div class="andon-takt-label">実行タクト</div>
             <div class="andon-takt-val" id="anTakt">10.0S</div>
@@ -981,7 +981,7 @@
 
         <div class="andon-process">
           <div class="ap-label">現在工程</div>
-          <div class="ap-val" id="anProcess">045-00　042400-3560</div>
+          <div class="ap-val" id="anProcess">045-00　100-0003</div>
         </div>
 
       </div>
@@ -1108,41 +1108,37 @@
 
     /* ── アンドンタブ ── */
     andon: {
-      lineName:  'ES10',
-      taktTime:  '10.0S',
+      lineName:  'A1',
+      taktTime:  '15.0S',
       current:   0,
       before:    0,
       after:     0,
       zangyo:    '0.00',
       teishi:    0,
-      temp:      '26°C',
-      humidity:  '25%',
-      pressure:  '0.3Pa',
+      temp:      '24°C',
+      humidity:  '50%',
+      pressure:  '0.2Pa',
       process:   '−',
     },
 
-    /* ── 2604月度 ES10ライン 生産日程表 ──
-       日付キー: 1〜28
-       各機種の日別計画台数（0は生産なし）
-    */
+    /* ── 月度生産日程表（サンプルデータ） ── */
     schedule: {
-      // 機種名: [1日, 2日, 3日, 6日, 7日, 8日, 9日, 10日, 13日, 14日, 15日, 16日, 17日, 20日, 21日, 22日, 23日, 24日, 27日, 28日]
       days: [1,2,3,6,7,8,9,10,13,14,15,16,17,20,21,22,23,24,27,28],
       models: [
-        { name:'ESB20C 042400-0374N', daily:[40,40,40,40,40,40,40,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-        { name:'ESB20C 042400-0741N', daily:[1280,1440,1520,1340,1140,1520,1560,1200,1480,1440,1260,1440,1560,1400,1400,1120,1240,1400,1800,1160] },
-        { name:'ESB20C 042400-1182N', daily:[0,0,0,0,0,0,0,50,40,0,0,0,0,0,0,0,0,0,0,0] },
-        { name:'ESB20C 042400-1800N', daily:[240,240,240,240,240,120,120,240,240,180,300,300,300,300,300,300,300,180,180,0] },
-        { name:'ESB20C 042400-2750N', daily:[540,420,360,420,420,350,420,120,360,420,420,420,360,420,540,420,540,540,240,0] },
-        { name:'ESB20C 042400-3731N', daily:[880,1201,1140,1125,1140,1200,1180,1156,1140,1151,1160,1151,1165,1146,1120,1121,1120,1120,1060,957] },
-        { name:'ESB27C 042400-1551N', daily:[1020,920,920,920,970,920,900,920,880,900,825,920,920,970,920,926,920,920,920,920] },
-        { name:'ESB27C 042400-1741N', daily:[35,40,0,60,21,40,20,60,20,60,40,0,21,50,41,40,40,40,40,60] },
-        { name:'ESB27C 042400-1881N', daily:[0,20,0,0,0,0,0,0,0,0,0,25,0,0,0,0,0,0,0,0] },
-        { name:'ESB27C 042400-2580N', daily:[20,20,20,0,0,20,20,20,20,20,20,20,20,20,20,20,20,20,20,40] },
-        { name:'ESB27C 042400-2990N', daily:[180,160,220,240,220,180,180,220,240,200,180,140,140,160,160,160,140,120,140,160] },
-        { name:'ESB27C 042400-3550N', daily:[800,780,780,920,640,500,600,800,800,800,780,760,760,680,640,520,360,520,0,0] },
-        { name:'ESB27C 042400-5590N', daily:[820,820,820,820,820,820,820,820,820,820,620,820,820,820,820,820,820,820,820,480] },
-        { name:'ESB34C 042400-1921N', daily:[20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+        { name:'XA10 100-0001', daily:[40,40,40,40,40,40,40,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+        { name:'XA10 100-0002', daily:[1200,1400,1500,1300,1100,1500,1500,1200,1400,1400,1200,1400,1500,1400,1400,1100,1200,1400,1800,1100] },
+        { name:'XA10 100-0003', daily:[0,0,0,0,0,0,0,50,40,0,0,0,0,0,0,0,0,0,0,0] },
+        { name:'XA10 100-0004', daily:[240,240,240,240,240,120,120,240,240,180,300,300,300,300,300,300,300,180,180,0] },
+        { name:'XA10 100-0005', daily:[500,420,360,420,420,350,420,120,360,420,420,420,360,420,540,420,540,540,240,0] },
+        { name:'XA10 100-0006', daily:[880,1200,1100,1100,1100,1200,1100,1100,1100,1100,1100,1100,1100,1100,1100,1100,1100,1100,1000,900] },
+        { name:'XB20 200-0001', daily:[1000,900,900,900,900,900,900,900,880,900,800,900,900,900,900,900,900,900,900,900] },
+        { name:'XB20 200-0002', daily:[35,40,0,60,20,40,20,60,20,60,40,0,20,50,40,40,40,40,40,60] },
+        { name:'XB20 200-0003', daily:[0,20,0,0,0,0,0,0,0,0,0,25,0,0,0,0,0,0,0,0] },
+        { name:'XB20 200-0004', daily:[20,20,20,0,0,20,20,20,20,20,20,20,20,20,20,20,20,20,20,40] },
+        { name:'XB20 200-0005', daily:[180,160,220,240,220,180,180,220,240,200,180,140,140,160,160,160,140,120,140,160] },
+        { name:'XB20 200-0006', daily:[800,780,780,900,640,500,600,800,800,800,780,760,760,680,640,520,360,520,0,0] },
+        { name:'XB20 200-0007', daily:[820,820,820,820,820,820,820,820,820,820,620,820,820,820,820,820,820,820,820,480] },
+        { name:'XC30 300-0001', daily:[20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
       ],
     },
 
@@ -1229,7 +1225,7 @@
     box.innerHTML = `<div class="model-plan-box">
       <span class="model-plan-label">■ ${today}日 機種別計画</span>
       ${models.map(m => {
-        const short = m.name.replace(/ESB\d+C\s+/, '');
+        const short = m.name.replace(/^X[A-Z]\d+\s+/, '');
         return `<div class="model-plan-item">${short}<span>${m.qty.toLocaleString()}台</span></div>`;
       }).join('')}
       <div class="model-plan-item" style="border-color:var(--cyan);color:var(--cyan);">
@@ -1385,16 +1381,16 @@
 
   /* ── Production rows (動的) ── */
   const rows = [
-    { date:'04/03', seq:'041-00', qty:20, part:'042400-1551', done:20, ship:20, rem:0,  st:'done' },
-    { date:'04/03', seq:'042-00', qty:20, part:'042400-0050', done:20, ship:18, rem:2,  st:'done' },
-    { date:'04/03', seq:'043-00', qty:20, part:'042400-0731', done:20, ship:20, rem:0,  st:'done' },
-    { date:'04/03', seq:'044-00', qty:20, part:'042400-0741', done:20, ship:16, rem:4,  st:'done' },
-    { date:'04/03', seq:'045-00', qty:20, part:'042400-3560', done:14, ship:8,  rem:6,  st:'run'  },
-    { date:'04/03', seq:'046-00', qty:20, part:'042400-1551', done:0,  ship:0,  rem:20, st:'wait' },
-    { date:'04/03', seq:'047-00', qty:20, part:'042400-0741', done:0,  ship:0,  rem:20, st:'wait' },
-    { date:'04/03', seq:'048-00', qty:20, part:'042400-0371', done:0,  ship:0,  rem:20, st:'wait' },
-    { date:'04/03', seq:'049-00', qty:20, part:'042400-0050', done:0,  ship:0,  rem:20, st:'wait' },
-    { date:'04/03', seq:'050-00', qty:20, part:'042400-3590', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'041-00', qty:20, part:'100-0001', done:20, ship:20, rem:0,  st:'done' },
+    { date:'04/03', seq:'042-00', qty:20, part:'100-0002', done:20, ship:18, rem:2,  st:'done' },
+    { date:'04/03', seq:'043-00', qty:20, part:'200-0001', done:20, ship:20, rem:0,  st:'done' },
+    { date:'04/03', seq:'044-00', qty:20, part:'200-0002', done:20, ship:16, rem:4,  st:'done' },
+    { date:'04/03', seq:'045-00', qty:20, part:'100-0003', done:14, ship:8,  rem:6,  st:'run'  },
+    { date:'04/03', seq:'046-00', qty:20, part:'100-0001', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'047-00', qty:20, part:'200-0002', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'048-00', qty:20, part:'100-0004', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'049-00', qty:20, part:'200-0003', done:0,  ship:0,  rem:20, st:'wait' },
+    { date:'04/03', seq:'050-00', qty:20, part:'300-0001', done:0,  ship:0,  rem:20, st:'wait' },
   ];
 
   /* 現在稼働中の行インデックス */
@@ -1860,7 +1856,7 @@
 
   function loadCfgForm() {
     /* 基本情報 */
-    document.getElementById('cfgLineTitle').value = document.querySelector('.header-title')?.textContent || 'ES10 ライン　生産管理システム';
+    document.getElementById('cfgLineTitle').value = document.querySelector('.header-title')?.textContent || 'A1 ライン　生産管理システム';
     document.getElementById('cfgLineSub').value   = document.querySelector('.header-sub')?.textContent   || '伝票発行パソコン　／　コンプレッサ組立ライン';
     document.getElementById('cfgTakt').value      = CONFIG.andon.taktTime;
     document.getElementById('cfgWorkers').value   = '6名';
@@ -1894,7 +1890,7 @@
       <div style="display:grid;grid-template-columns:50px 60px 1fr 60px 50px;gap:4px;margin-bottom:4px;align-items:center;">
         <input class="cfg-input" value="${r.seq}"  onchange="rows[${i}].seq=this.value"  placeholder="順序No" style="font-size:10px;padding:4px 6px;">
         <input class="cfg-input" value="${r.qty}"  onchange="rows[${i}].qty=parseInt(this.value)||20" type="number" placeholder="台数" style="font-size:10px;padding:4px 6px;">
-        <input class="cfg-input" value="${r.part}" onchange="rows[${i}].part=this.value" placeholder="DC品番" style="font-size:10px;padding:4px 6px;">
+        <input class="cfg-input" value="${r.part}" onchange="rows[${i}].part=this.value" placeholder="品番" style="font-size:10px;padding:4px 6px;">
         <select class="cfg-input" onchange="rows[${i}].st=this.value" style="font-size:10px;padding:3px;">
           <option value="done" ${r.st==='done'?'selected':''}>完了</option>
           <option value="run"  ${r.st==='run' ?'selected':''}>稼働中</option>
@@ -1904,7 +1900,7 @@
       </div>`).join('');
   }
   function addRow() {
-    rows.push({date:'04/03',seq:'051-00',qty:20,part:'042400-0000',done:0,ship:0,rem:20,st:'wait'});
+    rows.push({date:'04/03',seq:'051-00',qty:20,part:'100-0000',done:0,ship:0,rem:20,st:'wait'});
     buildRowsEditor();
   }
   function removeRow(i) { rows.splice(i,1); buildRowsEditor(); }
@@ -2067,11 +2063,11 @@
     });
     html += `<th class="total-col">月計</th></tr></thead><tbody>`;
 
-    /* ESB20 グループ */
+    /* XA10/XB20/XC30 グループ */
     const groups = [
-      { label:'ESB20C', filter: m => m.name.includes('ESB20') },
-      { label:'ESB27C', filter: m => m.name.includes('ESB27') },
-      { label:'ESB34C', filter: m => m.name.includes('ESB34') },
+      { label:'XA10', filter: m => m.name.includes('XA10') },
+      { label:'XB20', filter: m => m.name.includes('XB20') },
+      { label:'XC30', filter: m => m.name.includes('XC30') },
     ];
 
     let grandTotal = new Array(daysInMonth).fill(0);
@@ -2085,7 +2081,7 @@
       gModels.forEach(m => {
         html += '<tr>';
         /* 機種名セル（品番のみ短縮表示） */
-        const shortName = m.name.replace(/ESB\d+C\s+/,'');
+        const shortName = m.name.replace(/^X[A-Z]\d+\s+/,'');
         html += `<td class="model-name" title="${m.name}">${shortName}</td>`;
         let rowTotal = 0;
         allDays.forEach((d, di) => {
